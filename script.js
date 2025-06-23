@@ -21,3 +21,9 @@ addBtn.addEventListener("click", function(){
     }
 })
 
+function clearInputs(){
+    nameInput.value = ""
+    categoryInput.value = ""
+    deadlineInput.value = ""
+    statusInput.value = "In Progress"
+}
