@@ -58,3 +58,27 @@ function showTasks() {
     setupStatusDropdowns();
     setupDeleteButtons();
   }
+
+  function setupDeleteButtons() {
+    const deletes = document.querySelectorAll("button[data-delete]");
+    deletes.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const i = btn.getAttribute("data-delete");
+        tasks.splice(i, 1);
+        saveTasks();
+        showTasks();
+      });
+    });
+  }
+  
+  function checkOverdue() {
+    const today = new Date().toISOString().split("T")[0];
+    for (let i = 0; i < tasks.length; i++) {
+      const deadline = tasks[i][2];
+      const status = tasks[i][3];
+      if (status !== "Completed" && deadline < today) {
+        tasks[i][3] = "Overdue";
+      }
+    }
+  }
+  
