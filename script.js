@@ -29,56 +29,78 @@ function clearInputs(){
 }
 
 function showTasks() {
-    taskList.innerHTML = "";
-    checkOverdue();
-  
-    const sFilter = statusFilter.value;
-    const cFilter = categoryFilter.value.toLowerCase();
-  
-    for (let i = 0; i < tasks.length; i++) {
-      const task = tasks[i];
-      const matchStatus = !sFilter || task[3] === sFilter;
-      const matchCategory = !cFilter || task[1].toLowerCase().includes(cFilter);
-  
-      if (matchStatus && matchCategory) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          ${task[0]} | ${task[1]} | ${task[2]} | 
-          <select data-index="${i}">
-            <option ${task[3] === "In Progress" ? "selected" : ""}>In Progress</option>
-            <option ${task[3] === "Completed" ? "selected" : ""}>Completed</option>
-            <option ${task[3] === "Overdue" ? "selected" : ""}>Overdue</option>
-          </select>
-          <button data-delete="${i}">Delete</button>
-        `;
-        taskList.appendChild(li);
-      }
-    }
-  
-    setupStatusDropdowns();
-    setupDeleteButtons();
-  }
+  taskList.innerHTML = "";
+  checkOverdue();
 
-  function setupDeleteButtons() {
-    const deletes = document.querySelectorAll("button[data-delete]");
-    deletes.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        const i = btn.getAttribute("data-delete");
+  const sFilter = statusFilter.value;
+  const cFilter = categoryFilter.value.toLowerCase();
+
+  tasks.forEach((task, i) => {
+    const matchStatus = !sFilter || task[3] === sFilter;
+    const matchCategory = !cFilter || task[1].toLowerCase().includes(cFilter);
+
+    if (matchStatus && matchCategory) {
+      const li = document.createElement("li");
+
+      const taskText = document.createTextNode(`${task[0]} | ${task[1]} | ${task[2]} | `);
+      li.appendChild(taskText);
+
+      const select = document.createElement("select");
+      ["In Progress", "Completed", "Overdue"].forEach(status => {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        if (task[3] === status) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+
+      select.addEventListener("change", () => {
+        tasks[i][3] = select.value;
+        saveTasks();
+        showTasks();
+      });
+
+      const btn = document.createElement("button");
+      btn.textContent = "Delete";
+      btn.addEventListener("click", () => {
         tasks.splice(i, 1);
         saveTasks();
         showTasks();
       });
-    });
-  }
+
+      li.appendChild(select);
+      li.appendChild(btn);
+      taskList.appendChild(li);
+    }
+  });
+}
   
   function checkOverdue() {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toISOString().split("T")[0]
     for (let i = 0; i < tasks.length; i++) {
-      const deadline = tasks[i][2];
-      const status = tasks[i][3];
+      const deadline = tasks[i][2]
+      const status = tasks[i][3]
       if (status !== "Completed" && deadline < today) {
-        tasks[i][3] = "Overdue";
+        tasks[i][3] = "Overdue"
       }
     }
   }
   
+  function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks))
+  }
+  
+  function loadTasks() {
+    const saved = localStorage.getItem("tasks")
+    if (saved) {
+      tasks = JSON.parse(saved)
+    }
+    showTasks()
+  }
+  
+  statusFilter.addEventListener("change", showTasks)
+  categoryFilter.addEventListener("input", showTasks)
+  
+  window.onload = loadTasks
